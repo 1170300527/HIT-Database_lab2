@@ -1,10 +1,17 @@
 package main.record;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public class GenerateRecord {
 
-    public static List<Record> generateRecord(Integer number) {
+    /**
+     * 生成数据，使用set保证key值没有重复再构造记录
+     * @param number 数据条数
+     * @return 数据的list集合
+     */
+    public static @NotNull List<Record> generateRecord(Integer number) {
         List<Record> records = new ArrayList<>();
         Random rand = new Random();
         Set<Integer> ids = new HashSet<>();

@@ -14,17 +14,36 @@ class BTreeTest {
     void nodeTest() {
         BTree bTree = new BTree();
         List<Record> records = GenerateRecord.generateRecord(10);
-//        for (Record record : records) {
-//            System.out.println(record);
-//        }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < records.size(); i++) {
+            bTree.insert(records.get(i));
+        }
+        bTree.output();
+    }
+
+    @Test
+    void nodeSearchTest() {
+        BTree bTree = new BTree();
+        List<Record> records = GenerateRecord.generateRecord(10);
+        for (int i = 0; i < records.size(); i++) {
+            bTree.insert(records.get(i));
+        }
+        for (Record record : records) {
+            System.out.println(bTree.search(record.getId()));
+        }
+    }
+
+    @Test
+    void nodeDeleteTest() {
+        BTree bTree = new BTree();
+        List<Record> records = GenerateRecord.generateRecord(7);
+        for (int i = 0; i < records.size(); i++) {
             bTree.insert(records.get(i));
         }
         bTree.output();
         for (Record record : records) {
-            System.out.println(bTree.search(record.getId()));
+            bTree.delete(record.getId());
+            bTree.output();
         }
-//        System.out.println(bTree.search(records.get(7).getId()));
-//        bTree.test();
     }
+
 }

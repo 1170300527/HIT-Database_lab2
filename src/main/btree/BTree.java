@@ -2,12 +2,11 @@ package main.btree;
 
 
 import main.record.Record;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class BTree {
 
@@ -68,10 +67,34 @@ public class BTree {
         public void setLeaf(boolean leaf) {
             this.leaf = leaf;
         }
-    }
 
-    public static int getT() {
-        return T;
+        /**
+         * 根据id删除记录
+         * @param id 要删除的key值
+         */
+        public void removeKey(int id) {
+            Iterator<Record> iterator = keys.iterator();
+            while (iterator.hasNext()) {
+                Record record = iterator.next();
+                if (id == record.getId()) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+
+        /**
+         * 寻找key为id的下标
+         * @param id 寻找的关键字
+         * @return 下标，未找到返回-1
+         */
+        public int position(int id) {
+            for (int i = 0; i < keys.size(); i++) {
+                if (id == keys.get(i).getId())
+                    return i;
+            }
+            return -1;
+        }
     }
 
     public BTreeNode getRoot() {
@@ -82,11 +105,22 @@ public class BTree {
         this.root = root;
     }
 
+    /**
+     * 供外部使用的search，通过调用private的search
+     * @param key 寻找的key值
+     * @return key对应的value值
+     */
     public String search(Integer key) {
         return search(root, key);
     }
 
-    private String search(BTreeNode node, Integer key) {
+    /**
+     * 寻找key值返回value，递归调用
+     * @param node 搜寻的节点
+     * @param key 要寻找的key
+     * @return key对应的value
+     */
+    private @Nullable String search(BTreeNode node, Integer key) {
         int i = 0;
         while (i < node.size() && key > node.getKeys().get(i).getId())
             i++;
@@ -97,7 +131,12 @@ public class BTree {
         else return search(node.getChildren().get(i), key);
     }
 
-    public void splitChild(BTreeNode node, Integer i) {
+    /**
+     * 分裂已满的子节点
+     * @param node 父节点
+     * @param i 已满子节点下标
+     */
+    public void splitChild(@NotNull BTreeNode node, Integer i) {
         BTreeNode childNode = node.getChildren().get(i);
         List<Record> newNodeKeys = childNode.getKeys().subList(T , 2 * T - 1);
         List<BTreeNode> newNodeChildren = childNode.getChildren().subList(childNode.nodeSize() / 2, childNode.nodeSize());
@@ -110,6 +149,10 @@ public class BTree {
         childNode.setChildren(childNode.getChildren().subList(0, childNode.nodeSize() / 2));
     }
 
+    /**
+     * 从根节点开始插入
+     * @param key 插入的key
+     */
     public void insert(Record key) {
         if (root.getKeys().size() == 2 * T - 1) {
             BTreeNode newRoot = new BTreeNode();
@@ -120,7 +163,12 @@ public class BTree {
         insertNotFull(root, key);
     }
 
-    private void insertNotFull(BTreeNode node, Record key) {
+    /**
+     * 向未满的节点插入key，递归调用
+     * @param node 节点
+     * @param key 插入的记录
+     */
+    private void insertNotFull(@NotNull BTreeNode node, Record key) {
         int i = node.getKeys().size();
         if (node.isLeaf()) {
             while (i > 0 && key.getId() < node.getKeys().get(i-1).getId())
@@ -139,6 +187,96 @@ public class BTree {
         }
     }
 
+    /**
+     * 供外部调用的delete方法，调用内部的delete方法从root开始删除
+     * @param key 删除记录对应的key值
+     */
+    public void delete(int key) {
+        delete(root, key);
+    }
+
+    /**
+     * 递归删除方法
+     * @param node 当前搜寻的节点
+     * @param key 删除记录的key值
+     */
+    private void delete(@org.jetbrains.annotations.NotNull BTreeNode node, int key) {
+        int position = node.position(key);
+        //1.关键字在叶子节点直接删除,如果未查找到执行后无影响
+        if (node.isLeaf()) {
+            node.removeKey(key);
+        } else if (position != -1) { //2.关键字在内部节点
+            BTreeNode leftChild = node.getChildren().get(position);
+            BTreeNode rightChild = node.getChildren().get(position + 1);
+            if (leftChild.getKeys().size() > T - 1) { //a.前子节点至少包含t个关键字
+                Record maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
+                node.getKeys().set(position, maxRecord);
+                delete(leftChild, maxRecord.getId());
+            } else if (rightChild.getKeys().size() > T - 1) { //b.后子节点至少包含t个关键字
+                Record minRecord = rightChild.getKeys().get(0);
+                node.getKeys().set(position, minRecord);
+                delete(rightChild, minRecord.getId());
+            } else { //c.前后都只有t-1个关键字
+                leftChild.getKeys().add(node.getKeys().get(position));
+                leftChild.getKeys().addAll(rightChild.getKeys());
+                leftChild.getChildren().addAll(rightChild.getChildren());
+                node.getKeys().remove(position);
+                node.getChildren().remove(position + 1);
+                delete(leftChild, key);
+            }
+        } else { //3.关键字不在内部节点
+            int index = 0;
+            while (index < node.size() && key > node.getKeys().get(index).getId())
+                index++;
+            BTreeNode childNode = node.getChildren().get(index);
+            if (childNode.getKeys().size() < T) { //若节点只有t-1个关键字需要降至至少t个关键字的节点
+                BTreeNode leftChild = null;
+                BTreeNode rightChild = null;
+                if (index > 0 && (leftChild = node.getChildren().get(index - 1)).getKeys().size() > T - 1) {     //a1存在左兄弟且至少包含t个关键字
+                    Record maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
+                    leftChild.getKeys().remove(leftChild.getKeys().size());
+                    childNode.getKeys().add(0, node.getKeys().get(index - 1));
+                    node.getKeys().set(index - 1, maxRecord);
+                    if (!leftChild.getChildren().isEmpty()) {
+                        BTreeNode newNode = leftChild.getChildren().get(leftChild.getChildren().size() - 1);
+                        leftChild.getChildren().remove(leftChild.getChildren().size() - 1);
+                        childNode.getChildren().add(0, newNode);
+                    }
+                } else if (index < node.getKeys().size() && (rightChild = node.getChildren().get(index + 1)).getKeys().size() > T - 1) {  //a2存在右兄弟且至少包含t个关键字
+                    Record minRecord = rightChild.getKeys().get(0);
+                    childNode.getKeys().add(node.getKeys().get(index));
+                    node.getKeys().set(index, minRecord);
+                    if (!rightChild.getChildren().isEmpty()) {
+                        BTreeNode newNode = rightChild.getChildren().get(0);
+                        rightChild.getChildren().remove(0);
+                        childNode.getChildren().add(newNode);
+                    }
+                } else {    //b都只有t-1个关键字，需要合并
+                    if (leftChild != null) {    //与左兄弟合并
+                        childNode.getKeys().add(0, node.getKeys().get(index - 1));
+                        childNode.getKeys().addAll(0, leftChild.getKeys());
+                        childNode.getChildren().addAll(0, leftChild.getChildren());
+                        node.getKeys().remove(index - 1);
+                        node.getChildren().remove(index - 1);
+                    } else if (rightChild != null) {    //与右兄弟合并
+                        childNode.getKeys().add(node.getKeys().get(index));
+                        childNode.getKeys().addAll(rightChild.getKeys());
+                        childNode.getChildren().addAll(rightChild.getChildren());
+                        node.getKeys().remove(index);
+                        node.getChildren().remove(index + 1);
+                    }
+                    if (node == root && node.getKeys().size() == 0) {
+                        root = childNode;
+                    }
+                }
+            }
+            delete(childNode, key);
+        }
+    }
+
+    /**
+     * 输出整棵树
+     */
     public void output() {
         Queue<BTreeNode> queue = new LinkedList<>();
         queue.offer(root);
