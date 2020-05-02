@@ -38,14 +38,7 @@ public class FileRecord {
         try (InputStream inputStream = new FileInputStream(filename)) {
             byte[] bytes = new byte[16];
             while (inputStream.read(bytes) != -1) {
-                Record<Integer, String> record = new Record<>();
-                byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
-                int id = bytes2Int(idBytes);
-                record.setId(id);
-                byte[] infoBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
-                String info = new String(infoBytes);
-                record.setInfo(info);
-                records.add(record);
+                records.add(bytes2Record(bytes));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -53,12 +46,47 @@ public class FileRecord {
         return records;
     }
 
-    public static List<Record<Integer, Integer>> readAllIndex(String filename) {
-        return new ArrayList<>();
+    private static Record<Integer, String> bytes2Record(byte[] bytes) {
+        Record<Integer, String> record = new Record<>();
+        byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
+        int id = bytes2Int(idBytes);
+        record.setId(id);
+        byte[] infoBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
+        String info = new String(infoBytes);
+        record.setInfo(info);
+        return record;
     }
 
-    public static String readByIndex(String filename, int index) {
-        return "";
+    public static List<Record<Integer, Integer>> readAllIndex(String filename) {
+        List<Record<Integer, Integer>> records = new ArrayList<>();
+        try (InputStream inputStream = new FileInputStream(filename)) {
+            byte[] bytes = new byte[16];
+            int i = 0;
+            while (inputStream.read(bytes) != -1) {
+                Record<Integer, Integer> record = new Record<>();
+                byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
+                int id = bytes2Int(idBytes);
+                record.setId(id);
+                record.setInfo(i);
+                records.add(record);
+                i = i + 16;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return records;
+    }
+
+    public static Record<Integer, String> readByIndex(String filename, int index) {
+        try (InputStream inputStream = new FileInputStream(filename)) {
+            byte[] bytes = new byte[16];
+            if (inputStream.skip(index) == index && inputStream.read(bytes) != -1) {
+                return bytes2Record(bytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

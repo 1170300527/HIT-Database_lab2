@@ -3,7 +3,6 @@ package main.btree;
 import main.file.FileRecord;
 import main.record.GenerateRecord;
 import main.record.Record;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,8 +13,8 @@ class BTreeTest {
     void createTest() {
         BTree<Integer, String> bTree = new BTree<>();
         List<Record<Integer, String>> records = GenerateRecord.generateRecord(10);
-        for (int i = 0; i < records.size(); i++) {
-            bTree.insert(records.get(i));
+        for (Record<Integer, String> record : records) {
+            bTree.insert(record);
         }
         bTree.output();
     }
@@ -24,8 +23,8 @@ class BTreeTest {
     void searchTest() {
         BTree<Integer, String> bTree = new BTree<>();
         List<Record<Integer, String>> records = GenerateRecord.generateRecord(10);
-        for (int i = 0; i < records.size(); i++) {
-            bTree.insert(records.get(i));
+        for (Record<Integer, String> integerStringRecord : records) {
+            bTree.insert(integerStringRecord);
         }
         bTree.output();
         for (Record<Integer, String> record : records) {
@@ -39,13 +38,30 @@ class BTreeTest {
         List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
         FileRecord.writeRecord("data", records);
 //        List<Record> records = FileRecord.readRecord("data");
-        for (int i = 0; i < records.size(); i++) {
-            bTree.insert(records.get(i));
+        for (Record<Integer, String> integerStringRecord : records) {
+            bTree.insert(integerStringRecord);
         }
         bTree.output();
         System.out.println("=======================开始删除======================");
-        for (int i = 0; i < records.size(); i++) {
-            bTree.delete(records.get(i).getId());
+        for (Record<Integer, String> record : records) {
+            bTree.delete(record.getId());
+        }
+        bTree.output();
+    }
+
+    @Test
+    void deleteIndexTest() {
+        BTree<Integer, Integer> bTree = new BTree<>();
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
+        FileRecord.writeRecord("data", records);
+        List<Record<Integer, Integer>> readAllIndex = FileRecord.readAllIndex("data");
+        for (Record<Integer, Integer> allIndex : readAllIndex) {
+            bTree.insert(allIndex);
+        }
+        bTree.output();
+        System.out.println("=======================开始删除======================");
+        for (Record<Integer, Integer> allIndex : readAllIndex) {
+            bTree.delete(allIndex.getId());
         }
         bTree.output();
     }

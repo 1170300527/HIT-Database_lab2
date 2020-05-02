@@ -21,7 +21,7 @@ public class GenerateRecord {
         int i = 0;
         for (Integer id : ids) {
             Record<Integer, String> record = new Record<>();
-            record.setId(rand.nextInt());
+            record.setId(id);
             record.setInfo("THISIS" + String.format("%06d", i) + "");
             records.add(record);
             i++;

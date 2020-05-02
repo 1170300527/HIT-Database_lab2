@@ -16,7 +16,7 @@ class FileRecordTest {
     @Test
     void writeRecord() {
         String filename = "data";
-        List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(10);
         FileRecord.writeRecord(filename, records);
     }
 
@@ -25,5 +25,27 @@ class FileRecordTest {
     void readRecord() {
         String filename = "data";
         List<Record<Integer, String>> records = FileRecord.readRecord(filename);
+        for (Record<Integer, String> record : records) {
+            System.out.println(record);
+        }
+    }
+
+    @Order(3)
+    @Test
+    void readAllIndex() {
+        List<Record<Integer, Integer>> records;
+        records = FileRecord.readAllIndex("data");
+        for (Record<Integer, Integer> record : records) {
+            System.out.println(record);
+        }
+    }
+
+    @Test
+    void readByIndex() {
+        List<Record<Integer, Integer>> records;
+        records = FileRecord.readAllIndex("data");
+        for (Record<Integer, Integer> record : records) {
+            System.out.println(FileRecord.readByIndex("data", record.getInfo()));
+        }
     }
 }
