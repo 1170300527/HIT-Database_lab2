@@ -5,7 +5,6 @@ import main.record.Record;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.Key;
 import java.util.*;
 
 public class BTree {
@@ -97,14 +96,6 @@ public class BTree {
         }
     }
 
-    public BTreeNode getRoot() {
-        return root;
-    }
-
-    public void setRoot(BTreeNode root) {
-        this.root = root;
-    }
-
     /**
      * 供外部使用的search，通过调用private的search
      * @param key 寻找的key值
@@ -146,7 +137,7 @@ public class BTree {
         node.getChildren().add(i + 1, newNode);
         //一定要加new Arraylist！！！否则分裂后再插入报错ConcurrentModificationException找了巨久
         childNode.setKeys(new ArrayList<>(childNode.getKeys().subList(0, T - 1)));
-        childNode.setChildren(childNode.getChildren().subList(0, childNode.nodeSize() / 2));
+        childNode.setChildren(new ArrayList<>(childNode.getChildren().subList(0, childNode.nodeSize() / 2)));
     }
 
     /**
@@ -209,11 +200,11 @@ public class BTree {
             BTreeNode leftChild = node.getChildren().get(position);
             BTreeNode rightChild = node.getChildren().get(position + 1);
             if (leftChild.getKeys().size() > T - 1) { //a.前子节点至少包含t个关键字
-                Record maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
+                Record maxRecord = predecessor(leftChild);
                 node.getKeys().set(position, maxRecord);
                 delete(leftChild, maxRecord.getId());
             } else if (rightChild.getKeys().size() > T - 1) { //b.后子节点至少包含t个关键字
-                Record minRecord = rightChild.getKeys().get(0);
+                Record minRecord = successor(rightChild);
                 node.getKeys().set(position, minRecord);
                 delete(rightChild, minRecord.getId());
             } else { //c.前后都只有t-1个关键字
@@ -234,7 +225,7 @@ public class BTree {
                 BTreeNode rightChild = null;
                 if (index > 0 && (leftChild = node.getChildren().get(index - 1)).getKeys().size() > T - 1) {     //a1存在左兄弟且至少包含t个关键字
                     Record maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
-                    leftChild.getKeys().remove(leftChild.getKeys().size());
+                    leftChild.getKeys().remove(leftChild.getKeys().size() - 1);
                     childNode.getKeys().add(0, node.getKeys().get(index - 1));
                     node.getKeys().set(index - 1, maxRecord);
                     if (!leftChild.getChildren().isEmpty()) {
@@ -244,6 +235,7 @@ public class BTree {
                     }
                 } else if (index < node.getKeys().size() && (rightChild = node.getChildren().get(index + 1)).getKeys().size() > T - 1) {  //a2存在右兄弟且至少包含t个关键字
                     Record minRecord = rightChild.getKeys().get(0);
+                    rightChild.getKeys().remove(0);
                     childNode.getKeys().add(node.getKeys().get(index));
                     node.getKeys().set(index, minRecord);
                     if (!rightChild.getChildren().isEmpty()) {
@@ -275,6 +267,30 @@ public class BTree {
     }
 
     /**
+     *
+     * @param node 要寻找前驱节点的节点前子节点
+     * @return 前驱节点key值
+     */
+    private Record predecessor(BTreeNode node) {
+        while (!node.isLeaf()) {
+            node = node.getChildren().get(node.getChildren().size() - 1);
+        }
+        return node.getKeys().get(node.getKeys().size() - 1);
+    }
+
+    /**
+     *
+     * @param node 要寻找后继节点的节点的后子节点
+     * @return 前驱节点key值
+     */
+    private Record successor(BTreeNode node) {
+        while (!node.isLeaf()) {
+            node = node.getChildren().get(0);
+        }
+        return node.getKeys().get(0);
+    }
+
+    /**
      * 输出整棵树
      */
     public void output() {
@@ -301,8 +317,4 @@ public class BTree {
         }
     }
 
-    public void test() {
-        System.out.println("test: " + root.getChildren().get(0).getKeys());
-        System.out.println("test: " + root.getChildren().get(1).getKeys());
-    }
 }
