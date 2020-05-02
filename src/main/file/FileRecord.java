@@ -16,9 +16,9 @@ public class FileRecord {
      * @param filename 文件名
      * @param records 记录
      */
-    public static void writeRecord(String filename, @NotNull List<Record> records) {
+    public static void writeRecord(String filename, @NotNull List<Record<Integer, String>> records) {
         try(OutputStream outputStream = new FileOutputStream(filename)) {
-            for (Record record : records) {
+            for (Record<Integer, String> record : records) {
                 byte[] bytes = int2Bytes(record.getId());
                 outputStream.write(bytes);
                 outputStream.write(record.getInfo().getBytes());
@@ -33,12 +33,12 @@ public class FileRecord {
      * @param filename 文件名
      * @return 记录
      */
-    public static @NotNull List<Record> readRecord(String filename) {
-        List<Record> records = new ArrayList<>();
+    public static @NotNull List<Record<Integer, String>> readRecord(String filename) {
+        List<Record<Integer, String>> records = new ArrayList<>();
         try (InputStream inputStream = new FileInputStream(filename)) {
             byte[] bytes = new byte[16];
             while (inputStream.read(bytes) != -1) {
-                Record record = new Record();
+                Record<Integer, String> record = new Record<>();
                 byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
                 int id = bytes2Int(idBytes);
                 record.setId(id);
@@ -51,6 +51,14 @@ public class FileRecord {
             e.printStackTrace();
         }
         return records;
+    }
+
+    public static List<Record<Integer, Integer>> readAllIndex(String filename) {
+        return new ArrayList<>();
+    }
+
+    public static String readByIndex(String filename, int index) {
+        return "";
     }
 
     /**

@@ -1,23 +1,25 @@
 package main.record;
 
-public class Record {
+import org.jetbrains.annotations.NotNull;
 
-    private int id;
-    private String info;
+public class Record<K extends Comparable<K>, V> implements Comparable<K>{
 
-    public int getId() {
+    private K id;
+    private V info;
+
+    public K getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(K id) {
         this.id = id;
     }
 
-    public String getInfo() {
+    public V getInfo() {
         return info;
     }
 
-    public void setInfo(String info) {
+    public void setInfo(V info) {
         this.info = info;
     }
 
@@ -27,5 +29,10 @@ public class Record {
                 "id=" + id +
                 ", info='" + info + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(@NotNull K o) {
+        return this.id.compareTo(o);
     }
 }

@@ -10,8 +10,8 @@ class GenerateRecordTest {
 
     @Test
     void generateRecord() {
-        List<Record> records = GenerateRecord.generateRecord(1000000);
-        for (Record record : records) {
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
+        for (Record<Integer, String> record : records) {
             System.out.println(record);
         }
     }

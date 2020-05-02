@@ -9,8 +9,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FileRecordTest {
 
@@ -18,7 +16,7 @@ class FileRecordTest {
     @Test
     void writeRecord() {
         String filename = "data";
-        List<Record> records = GenerateRecord.generateRecord(1000000);
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
         FileRecord.writeRecord(filename, records);
     }
 
@@ -26,6 +24,6 @@ class FileRecordTest {
     @Test
     void readRecord() {
         String filename = "data";
-        List<Record> records = FileRecord.readRecord(filename);
+        List<Record<Integer, String>> records = FileRecord.readRecord(filename);
     }
 }

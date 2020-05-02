@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class BTree {
+public class BTree<K extends Comparable<K>, V> {
 
     private static final int T = 4;
 
@@ -18,28 +18,29 @@ public class BTree {
         root.setLeaf(true);
     }
 
-    private static class BTreeNode {
+    private class BTreeNode {
 
-        private List<Record> keys;
+        private List<Record<K, V>> keys;
         private List<BTreeNode> children;
         private boolean leaf;
+
 
         public BTreeNode() {
             keys = new ArrayList<>();
             children = new ArrayList<>();
         }
 
-        public BTreeNode(List<Record> keys, List<BTreeNode> children, boolean leaf) {
+        public BTreeNode(List<Record<K, V>> keys, List<BTreeNode> children, boolean leaf) {
             this.keys = keys;
             this.children = children;
             this.leaf = leaf;
         }
 
-        public List<Record> getKeys() {
+        public List<Record<K, V>> getKeys() {
             return keys;
         }
 
-        public void setKeys(List<Record> keys) {
+        public void setKeys(List<Record<K, V>> keys) {
             this.keys = keys;
         }
 
@@ -71,11 +72,11 @@ public class BTree {
          * 根据id删除记录
          * @param id 要删除的key值
          */
-        public void removeKey(int id) {
-            Iterator<Record> iterator = keys.iterator();
+        public void removeKey(K id) {
+            Iterator<Record<K, V>> iterator = keys.iterator();
             while (iterator.hasNext()) {
-                Record record = iterator.next();
-                if (id == record.getId()) {
+                Record<K, V> record = iterator.next();
+                if (id.compareTo(record.getId()) == 0) {
                     iterator.remove();
                     break;
                 }
@@ -87,9 +88,9 @@ public class BTree {
          * @param id 寻找的关键字
          * @return 下标，未找到返回-1
          */
-        public int position(int id) {
+        public int position(K id) {
             for (int i = 0; i < keys.size(); i++) {
-                if (id == keys.get(i).getId())
+                if (id.compareTo(keys.get(i).getId()) == 0)
                     return i;
             }
             return -1;
@@ -101,7 +102,7 @@ public class BTree {
      * @param key 寻找的key值
      * @return key对应的value值
      */
-    public String search(Integer key) {
+    public V search(K key) {
         return search(root, key);
     }
 
@@ -111,11 +112,11 @@ public class BTree {
      * @param key 要寻找的key
      * @return key对应的value
      */
-    private @Nullable String search(BTreeNode node, Integer key) {
+    private @Nullable V search(BTreeNode node, K key) {
         int i = 0;
-        while (i < node.size() && key > node.getKeys().get(i).getId())
+        while (i < node.size() && key.compareTo(node.getKeys().get(i).getId()) > 0)
             i++;
-        if (i < node.size() && key == node.getKeys().get(i).getId())
+        if (i < node.size() && key.compareTo(node.getKeys().get(i).getId()) == 0)
             return node.getKeys().get(i).getInfo();
         else if (node.isLeaf())
             return null;
@@ -129,10 +130,10 @@ public class BTree {
      */
     public void splitChild(@NotNull BTreeNode node, Integer i) {
         BTreeNode childNode = node.getChildren().get(i);
-        List<Record> newNodeKeys = childNode.getKeys().subList(T , 2 * T - 1);
+        List<Record<K, V>> newNodeKeys = childNode.getKeys().subList(T , 2 * T - 1);
         List<BTreeNode> newNodeChildren = childNode.getChildren().subList(childNode.nodeSize() / 2, childNode.nodeSize());
         BTreeNode newNode = new BTreeNode(newNodeKeys, newNodeChildren, childNode.leaf);
-        Record middle = childNode.getKeys().get(T - 1);
+        Record<K, V> middle = childNode.getKeys().get(T - 1);
         node.getKeys().add(i, middle);
         node.getChildren().add(i + 1, newNode);
         //一定要加new Arraylist！！！否则分裂后再插入报错ConcurrentModificationException找了巨久
@@ -144,7 +145,7 @@ public class BTree {
      * 从根节点开始插入
      * @param key 插入的key
      */
-    public void insert(Record key) {
+    public void insert(Record<K, V> key) {
         if (root.getKeys().size() == 2 * T - 1) {
             BTreeNode newRoot = new BTreeNode();
             newRoot.getChildren().add(root);
@@ -159,18 +160,18 @@ public class BTree {
      * @param node 节点
      * @param key 插入的记录
      */
-    private void insertNotFull(@NotNull BTreeNode node, Record key) {
+    private void insertNotFull(@NotNull BTreeNode node, Record<K, V> key) {
         int i = node.getKeys().size();
         if (node.isLeaf()) {
-            while (i > 0 && key.getId() < node.getKeys().get(i-1).getId())
+            while (i > 0 && key.getId().compareTo(node.getKeys().get(i-1).getId()) < 0)
                 i--;
             node.getKeys().add(i, key);
         } else {
-            while (i > 0 && key.getId() < node.getKeys().get(i-1).getId())
+            while (i > 0 && key.getId().compareTo(node.getKeys().get(i-1).getId()) < 0)
                 i--;
             if (node.getChildren().get(i).size() == 2 * T - 1) {
                 splitChild(node, i);
-                if (key.getId() > node.getKeys().get(i).getId()) {
+                if (key.getId().compareTo(node.getKeys().get(i).getId()) > 0) {
                     i++;
                 }
             }
@@ -182,7 +183,7 @@ public class BTree {
      * 供外部调用的delete方法，调用内部的delete方法从root开始删除
      * @param key 删除记录对应的key值
      */
-    public void delete(int key) {
+    public void delete(K key) {
         delete(root, key);
     }
 
@@ -191,7 +192,7 @@ public class BTree {
      * @param node 当前搜寻的节点
      * @param key 删除记录的key值
      */
-    private void delete(@org.jetbrains.annotations.NotNull BTreeNode node, int key) {
+    private void delete(@NotNull BTreeNode node, K key) {
         int position = node.position(key);
         //1.关键字在叶子节点直接删除,如果未查找到执行后无影响
         if (node.isLeaf()) {
@@ -200,11 +201,11 @@ public class BTree {
             BTreeNode leftChild = node.getChildren().get(position);
             BTreeNode rightChild = node.getChildren().get(position + 1);
             if (leftChild.getKeys().size() > T - 1) { //a.前子节点至少包含t个关键字
-                Record maxRecord = predecessor(leftChild);
+                Record<K, V> maxRecord = predecessor(leftChild);
                 node.getKeys().set(position, maxRecord);
                 delete(leftChild, maxRecord.getId());
             } else if (rightChild.getKeys().size() > T - 1) { //b.后子节点至少包含t个关键字
-                Record minRecord = successor(rightChild);
+                Record<K, V> minRecord = successor(rightChild);
                 node.getKeys().set(position, minRecord);
                 delete(rightChild, minRecord.getId());
             } else { //c.前后都只有t-1个关键字
@@ -217,14 +218,14 @@ public class BTree {
             }
         } else { //3.关键字不在内部节点
             int index = 0;
-            while (index < node.size() && key > node.getKeys().get(index).getId())
+            while (index < node.size() && key.compareTo(node.getKeys().get(index).getId()) > 0)
                 index++;
             BTreeNode childNode = node.getChildren().get(index);
             if (childNode.getKeys().size() < T) { //若节点只有t-1个关键字需要降至至少t个关键字的节点
                 BTreeNode leftChild = null;
                 BTreeNode rightChild = null;
                 if (index > 0 && (leftChild = node.getChildren().get(index - 1)).getKeys().size() > T - 1) {     //a1存在左兄弟且至少包含t个关键字
-                    Record maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
+                    Record<K, V> maxRecord = leftChild.getKeys().get(leftChild.getKeys().size() - 1);
                     leftChild.getKeys().remove(leftChild.getKeys().size() - 1);
                     childNode.getKeys().add(0, node.getKeys().get(index - 1));
                     node.getKeys().set(index - 1, maxRecord);
@@ -234,7 +235,7 @@ public class BTree {
                         childNode.getChildren().add(0, newNode);
                     }
                 } else if (index < node.getKeys().size() && (rightChild = node.getChildren().get(index + 1)).getKeys().size() > T - 1) {  //a2存在右兄弟且至少包含t个关键字
-                    Record minRecord = rightChild.getKeys().get(0);
+                    Record<K, V> minRecord = rightChild.getKeys().get(0);
                     rightChild.getKeys().remove(0);
                     childNode.getKeys().add(node.getKeys().get(index));
                     node.getKeys().set(index, minRecord);
@@ -267,11 +268,11 @@ public class BTree {
     }
 
     /**
-     *
+     * 寻找前驱节点
      * @param node 要寻找前驱节点的节点前子节点
      * @return 前驱节点key值
      */
-    private Record predecessor(BTreeNode node) {
+    private Record<K, V> predecessor(BTreeNode node) {
         while (!node.isLeaf()) {
             node = node.getChildren().get(node.getChildren().size() - 1);
         }
@@ -279,11 +280,11 @@ public class BTree {
     }
 
     /**
-     *
+     * 寻找后继节点
      * @param node 要寻找后继节点的节点的后子节点
      * @return 前驱节点key值
      */
-    private Record successor(BTreeNode node) {
+    private Record<K, V> successor(BTreeNode node) {
         while (!node.isLeaf()) {
             node = node.getChildren().get(0);
         }

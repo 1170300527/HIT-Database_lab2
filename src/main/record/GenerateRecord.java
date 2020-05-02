@@ -11,8 +11,8 @@ public class GenerateRecord {
      * @param number 数据条数
      * @return 数据的list集合
      */
-    public static @NotNull List<Record> generateRecord(Integer number) {
-        List<Record> records = new ArrayList<>();
+    public static @NotNull List<Record<Integer, String>> generateRecord(Integer number) {
+        List<Record<Integer, String>> records = new ArrayList<>();
         Random rand = new Random();
         Set<Integer> ids = new HashSet<>();
         do {
@@ -20,7 +20,7 @@ public class GenerateRecord {
         } while (ids.size() < number);
         int i = 0;
         for (Integer id : ids) {
-            Record record = new Record();
+            Record<Integer, String> record = new Record<>();
             record.setId(rand.nextInt());
             record.setInfo("THISIS" + String.format("%06d", i) + "");
             records.add(record);

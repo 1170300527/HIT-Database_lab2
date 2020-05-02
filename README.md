@@ -28,10 +28,10 @@
        List<Record> records = new ArrayList<>();
        Random rand = new Random();
        for (int i = 0; i < number; i++) {
-           Record record = new Record();
-           record.setId(rand.nextInt());
-           record.setInfo("THISIS" + String.format("%06d", i) + "");
-           records.add(record);
+           Record entry = new Record();
+           entry.setId(rand.nextInt());
+           entry.setInfo("THISIS" + String.format("%06d", i) + "");
+           records.add(entry);
        }
        return records;
    }
@@ -40,9 +40,9 @@
 3. 生成文本记录：将int与string转为byte数组（int2Bytes为自定义函数），通过OutputStream字节流写入文件
 
    ```java
-   byte[] bytes = int2Bytes(record.getId());
+   byte[] bytes = int2Bytes(entry.getId());
    outputStream.write(bytes);
-   outputStream.write(record.getInfo().getBytes());
+   outputStream.write(entry.getInfo().getBytes());
    ```
 
 4. 读取文本记录：使用InputStream读入文件，每次读入一条记录的长度16字节，将前4个字节转为int，剩余字节转为string（bytes2Int为自定义函数），恢复record
@@ -50,14 +50,14 @@
    ~~~java
    byte[] bytes = new byte[16];
    while (inputStream.read(bytes) != -1) {
-       Record record = new Record();
+       Record entry = new Record();
        byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
        int id = bytes2Int(idBytes);
-       record.setId(id);
+       entry.setId(id);
        byte[] infoBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
        String info = new String(infoBytes);
-       record.setInfo(info);
-       records.add(record);
+       entry.setInfo(info);
+       records.add(entry);
    }
    ~~~
 
