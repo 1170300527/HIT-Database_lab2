@@ -46,7 +46,7 @@ public class FileRecord {
         return records;
     }
 
-    private static Record<Integer, String> bytes2Record(byte[] bytes) {
+    public static Record<Integer, String> bytes2Record(byte[] bytes) {
         Record<Integer, String> record = new Record<>();
         byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
         int id = bytes2Int(idBytes);

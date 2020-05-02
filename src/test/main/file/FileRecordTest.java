@@ -16,7 +16,7 @@ class FileRecordTest {
     @Test
     void writeRecord() {
         String filename = "data";
-        List<Record<Integer, String>> records = GenerateRecord.generateRecord(10);
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(20);
         FileRecord.writeRecord(filename, records);
     }
 
