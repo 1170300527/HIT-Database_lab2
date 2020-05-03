@@ -2,7 +2,7 @@ package main.record;
 
 import org.jetbrains.annotations.NotNull;
 
-public class Record<K extends Comparable<K>, V> implements Comparable<K>{
+public class Record<K extends Comparable<K>, V>  implements Comparable<Record<K, V>> {
 
     private K id;
     private V info;
@@ -31,8 +31,9 @@ public class Record<K extends Comparable<K>, V> implements Comparable<K>{
                 '}';
     }
 
+
     @Override
-    public int compareTo(@NotNull K o) {
-        return this.id.compareTo(o);
+    public int compareTo(@NotNull Record<K, V> o) {
+        return this.id.compareTo(o.getId());
     }
 }
