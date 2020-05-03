@@ -16,6 +16,19 @@ public class MergeSort {
      * @param number 内存中可存放记录条数
      */
     public static void splitSort(String filename, int number) {
+
+        File file = new File("tmp");
+        if (!file.exists()) {
+            if (!file.mkdir())
+                System.out.println("创建文件夹失败");
+        } else {
+            File[] files = file.listFiles();
+            for (File childFile : files) {
+                if (!childFile.delete())
+                    System.out.println("文件删除失败: " + childFile.getName());
+            }
+        }
+
         try (InputStream inputStream = new FileInputStream(filename)) {
             byte[] bytes = new byte[16];
             List<Record<Integer, String>> records = new ArrayList<>();
@@ -30,8 +43,14 @@ public class MergeSort {
                     i++;
                 }
             }
+            if (records.size() > 0) {
+                records.sort(Comparator.comparingInt(Record::getId));
+                FileRecord.writeRecord("tmp/data" + i, records);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 }
