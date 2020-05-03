@@ -46,6 +46,37 @@ public class FileRecord {
         return records;
     }
 
+    /**
+     * 从start位置读取number条记录
+     * @param file 文件
+     * @param start 起始位置
+     * @param number 记录条数
+     * @return 记录
+     */
+    public static List<Record<Integer, String>> readRecord(File file, int start, int number) {
+        List<Record<Integer, String>> records = new ArrayList<>();
+        int all = 0;
+        try (InputStream inputStream = new FileInputStream(file)) {
+            byte[] bytes = new byte[16];
+            if (inputStream.skip(start * 16) != start * 16)
+                return records;
+            while (inputStream.read(bytes) != -1) {
+                records.add(bytes2Record(bytes));
+                all++;
+                if (all >= number)
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return records;
+    }
+
+    /**
+     * byte数组转记录
+     * @param bytes 16位byte数组
+     * @return 记录
+     */
     public static Record<Integer, String> bytes2Record(byte[] bytes) {
         Record<Integer, String> record = new Record<>();
         byte[] idBytes = Arrays.copyOfRange(bytes, 0, 4);
@@ -57,6 +88,11 @@ public class FileRecord {
         return record;
     }
 
+    /**
+     * 通过记录获取索引
+     * @param filename 文件名
+     * @return 索引格式记录
+     */
     public static List<Record<Integer, Integer>> readAllIndex(String filename) {
         List<Record<Integer, Integer>> records = new ArrayList<>();
         try (InputStream inputStream = new FileInputStream(filename)) {
@@ -77,6 +113,12 @@ public class FileRecord {
         return records;
     }
 
+    /**
+     * 通过索引读取文件
+     * @param filename 文件名
+     * @param index 索引
+     * @return 记录
+     */
     public static Record<Integer, String> readByIndex(String filename, int index) {
         try (InputStream inputStream = new FileInputStream(filename)) {
             byte[] bytes = new byte[16];

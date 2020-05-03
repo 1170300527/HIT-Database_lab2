@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.io.File;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -16,7 +17,7 @@ class FileRecordTest {
     @Test
     void writeRecord() {
         String filename = "data";
-        List<Record<Integer, String>> records = GenerateRecord.generateRecord(20);
+        List<Record<Integer, String>> records = GenerateRecord.generateRecord(1000000);
         FileRecord.writeRecord(filename, records);
     }
 
@@ -47,5 +48,10 @@ class FileRecordTest {
         for (Record<Integer, Integer> record : records) {
             System.out.println(FileRecord.readByIndex("data", record.getInfo()));
         }
+    }
+
+    @Test
+    void readRecordLimit() {
+        System.out.println(FileRecord.readRecord(new File("data"), 123456, 4));
     }
 }
