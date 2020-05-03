@@ -21,8 +21,9 @@ class MergeSortTest {
 
     @Test
     void mergeSortTest() {
-        List<Record<Integer, String>> records = MergeSort.mergeSort("tmp", 4096);
+        MergeSort.mergeSort("tmp", 4096, "sortResult");
         List<Record<Integer, String>> originalRecords = FileRecord.readRecord("data");
+        List<Record<Integer, String>> records = FileRecord.readRecord("sortResult");
         Collections.sort(originalRecords);
         assertEquals(originalRecords, records);
     }

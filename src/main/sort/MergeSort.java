@@ -53,10 +53,10 @@ public class MergeSort {
     /**
      * 多路归并排序
      * @param path 已经排序好的临时文件夹路径
-     * @param number 归并路数
+     * @param number 每次读取条数
+     * @param resultFilename 结果文件名
      */
-    public static List<Record<Integer, String>> mergeSort(String path, int number) {
-        List<Record<Integer, String>> result = new ArrayList<>();
+    public static void mergeSort(String path, int number, String resultFilename) {
         File rootFile = new File(path);
         if (!rootFile.exists()) {
             System.out.println("文件夹不存在");
@@ -82,39 +82,43 @@ public class MergeSort {
         LoserTree<Record<Integer, String>> loserTree = new LoserTree<>(initValues);
         //输出胜者
         Integer s = loserTree.getWinner();
-        result.add(loserTree.getLeaf(s));
-        while (true) {
-            //新增叶子节点
-            Record<Integer, String> newLeaf = sources.get(s).poll();
-            if (newLeaf == null) {
-                List<Record<Integer, String>> recordList = FileRecord.readRecord(files[s], start[s], number);
-                if (recordList.isEmpty()) { //返回空说明已经读完该文件，删除叶子
-                    loserTree.del(s);
-                    sources.remove((int) s);
-                }
-                else { //未读完将新的数据加入到待排序序列中
-                    start[s] += recordList.size();
-                    sources.set(s, new LinkedList<>(recordList));
-                    newLeaf = sources.get(s).poll();
+        try (OutputStream outputStream = new FileOutputStream(resultFilename)) {
+            Record<Integer, String> record = loserTree.getLeaf(s);
+            byte[] bytes = FileRecord.int2Bytes(record.getId());
+            outputStream.write(bytes);
+            outputStream.write(record.getInfo().getBytes());
+            while (true) {
+                //新增叶子节点
+                Record<Integer, String> newLeaf = sources.get(s).poll();
+                if (newLeaf == null) {
+                    List<Record<Integer, String>> recordList = FileRecord.readRecord(files[s], start[s], number);
+                    if (recordList.isEmpty()) { //返回空说明已经读完该文件，删除叶子
+                        loserTree.del(s);
+                        sources.remove((int) s);
+                    }
+                    else { //未读完将新的数据加入到待排序序列中
+                        start[s] += recordList.size();
+                        sources.set(s, new LinkedList<>(recordList));
+                        newLeaf = sources.get(s).poll();
+                        loserTree.add(newLeaf, s);
+                    }
+                } else {
                     loserTree.add(newLeaf, s);
                 }
-            } else {
-                loserTree.add(newLeaf, s);
-            }
 
-            s = loserTree.getWinner();
-            if (s == null) {
-                break;
+                s = loserTree.getWinner();
+                if (s == null) {
+                    break;
+                }
+                //输出胜者
+                record = loserTree.getLeaf(s);
+                bytes = FileRecord.int2Bytes(record.getId());
+                outputStream.write(bytes);
+                outputStream.write(record.getInfo().getBytes());
             }
-            //输出胜者
-            result.add(loserTree.getLeaf(s));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        int i = 0;
-        for (Queue<Record<Integer, String>> source : sources) {
-            System.out.println(i + ": " + source.size());
-            i++;
-        }
-        return result;
     }
 
 }
