@@ -119,7 +119,9 @@ public class FileRecord {
      * @param index 索引
      * @return 记录
      */
-    public static Record<Integer, String> readByIndex(String filename, int index) {
+    public static Record<Integer, String> readByIndex(String filename, Integer index) {
+        if (index == null)
+            return null;
         try (InputStream inputStream = new FileInputStream(filename)) {
             byte[] bytes = new byte[16];
             if (inputStream.skip(index) == index && inputStream.read(bytes) != -1) {

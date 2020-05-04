@@ -22,7 +22,7 @@ public class GenerateRecord {
         for (Integer id : ids) {
             Record<Integer, String> record = new Record<>();
             record.setId(id);
-            record.setInfo("THISIS" + String.format("%06d", i) + "");
+            record.setInfo("ThisIs" + String.format("%06d", i) + "");
             records.add(record);
             i++;
         }

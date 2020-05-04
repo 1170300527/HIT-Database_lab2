@@ -35,14 +35,14 @@ public class MergeSort {
                 Record<Integer, String> record = FileRecord.bytes2Record(bytes);
                 records.add(record);
                 if (records.size() % number == 0) {
-                    records.sort(Comparator.comparingInt(Record::getId));
+                    Collections.sort(records);
                     FileRecord.writeRecord("tmp/data" + i, records);
                     records.clear();
                     i++;
                 }
             }
             if (records.size() > 0) {
-                records.sort(Comparator.comparingInt(Record::getId));
+                Collections.sort(records);
                 FileRecord.writeRecord("tmp/data" + i, records);
             }
         } catch (IOException e) {
